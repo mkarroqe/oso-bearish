@@ -73,15 +73,6 @@ const mockStocks: Stock[] = [
     changePercent: 1.94,
     volume: 28764300,
     marketCap: 1080000000000
-  },
-  {
-    symbol: 'BRK.A',
-    name: 'Berkshire Hathaway Inc.',
-    price: 540000.00,
-    change: -2500.00,
-    changePercent: -0.46,
-    volume: 1250,
-    marketCap: 785000000000
   }
 ];
 
