@@ -2,23 +2,33 @@
 
 import { useEffect, useState } from 'react';
 import type { Stock } from '@/types/stock';
+import { UserSwitcher } from '@/components/UserSwitcher';
+import { useUser } from '@/contexts/UserContext';
 
 export default function Home() {
   const [stocks, setStocks] = useState<Stock[]>([]);
   const [loading, setLoading] = useState(true);
+  const { currentUser, permissions } = useUser();
 
   useEffect(() => {
     fetch('/api/stocks')
       .then(res => res.json())
       .then(data => {
-        setStocks(data);
+        let filteredStocks = data;
+        
+        // Basic users can only see limited stocks
+        if (!permissions.canViewAllStocks) {
+          filteredStocks = data.slice(0, 3); // Only first 3 stocks
+        }
+        
+        setStocks(filteredStocks);
         setLoading(false);
       })
       .catch(err => {
         console.error('Failed to fetch stocks:', err);
         setLoading(false);
       });
-  }, []);
+  }, [permissions]);
 
   const formatNumber = (num: number) => {
     return new Intl.NumberFormat('en-US').format(num);
@@ -43,9 +53,26 @@ export default function Home() {
     );
   }
 
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-purple-50 p-12">
+        <div className="max-w-2xl mx-auto">
+          <div className="mb-12 text-center">
+            <h1 className="text-4xl font-light text-slate-700 mb-2 tracking-wide">🐻</h1>
+            <h1 className="text-4xl font-light text-slate-700 mb-2 tracking-wide">o(h )so bearish</h1>
+            <p className="text-slate-500 font-light">market data and insights for your investment decisions</p>
+          </div>
+          <UserSwitcher />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-purple-50 p-12">
       <div className="max-w-7xl mx-auto">
+        <UserSwitcher />
+        
         <div className="mb-12 text-center">
           <h1 className="text-4xl font-light text-slate-700 mb-2 tracking-wide">🐻</h1>
           <h1 className="text-4xl font-light text-slate-700 mb-2 tracking-wide">o(h )so bearish</h1>
