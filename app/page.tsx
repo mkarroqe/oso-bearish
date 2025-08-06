@@ -101,7 +101,7 @@ export default function Home() {
       <div className="max-w-7xl mx-auto">
         <UserSwitcher />
         
-        <div className="mb-8 text-center py-8 bg-blue-100 rounded-2xl shadow-sm border border-yellow-100/50">
+        <div className="mb-8 text-center py-8 bg-blue-100 rounded-2xl shadow-sm border border-blue-200/50">
           <h1 className="text-6xl mb-6">🐻</h1>
           <div className="text-3xl font-light text-slate-700 mb-4">
             hi, <span className="underline decoration-2 underline-offset-4">{currentUser.firstName.toLowerCase()}</span> 👋
