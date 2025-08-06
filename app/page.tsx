@@ -1,16 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-
-interface Stock {
-  symbol: string;
-  name: string;
-  price: number;
-  change: number;
-  changePercent: number;
-  volume: number;
-  marketCap: number;
-}
+import type { Stock } from '@/types/stock';
 
 export default function Home() {
   const [stocks, setStocks] = useState<Stock[]>([]);

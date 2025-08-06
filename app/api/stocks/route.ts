@@ -1,14 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-interface Stock {
-  symbol: string;
-  name: string;
-  price: number;
-  change: number;
-  changePercent: number;
-  volume: number;
-  marketCap: number;
-}
+import type { Stock } from '@/types/stock';
 
 const mockStocks: Stock[] = [
   {
@@ -95,7 +86,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(mockStocks);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
