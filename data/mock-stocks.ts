@@ -1,6 +1,6 @@
 import type { Stock } from '@/types/stock';
 
-export const mockStocks: Stock[] = [
+export let mockStocks: Stock[] = [
   {
     symbol: 'NVDA',
     name: 'NVIDIA Corporation',
