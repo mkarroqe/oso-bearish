@@ -3,26 +3,30 @@ import type { User, UserPermissions } from '@/types/user';
 export const mockUsers: User[] = [
   {
     id: '1',
-    name: 'Basic User',
-    email: 'basic@example.com',
+    firstName: 'Betty',
+    lastName: 'Baesic',
+    email: 'basicbasedbetty@osohq.com',
     role: 'basic'
   },
   {
     id: '2', 
-    name: 'Premium User',
-    email: 'premium@example.com',
+    firstName: 'Priya',
+    lastName: 'Mium',
+    email: 'mipri@osohq.com',
     role: 'premium'
   },
   {
     id: '3',
-    name: 'Market Analyst',
-    email: 'analyst@example.com', 
+    firstName: 'Ana',
+    lastName: 'Lyst',
+    email: 'analystana@osohq.com', 
     role: 'analyst'
   },
   {
     id: '4',
-    name: 'Admin User',
-    email: 'admin@example.com',
+    firstName: 'Addie',
+    lastName: 'Min',
+    email: 'whatstheaddie@osohq.com',
     role: 'admin'
   }
 ];

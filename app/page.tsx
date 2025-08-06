@@ -45,6 +45,10 @@ export default function Home() {
     return formatCurrency(num);
   };
 
+  const getArticle = (role: string) => {
+    return ['admin', 'analyst'].includes(role) ? 'an' : 'a';
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -73,10 +77,15 @@ export default function Home() {
       <div className="max-w-7xl mx-auto">
         <UserSwitcher />
         
-        <div className="mb-12 text-center">
-          <h1 className="text-4xl font-light text-slate-700 mb-2 tracking-wide">🐻</h1>
-          <h1 className="text-4xl font-light text-slate-700 mb-2 tracking-wide">o(h )so bearish</h1>
-          <p className="text-slate-500 font-light">market data and insights for your investment decisions</p>
+        <div className="mb-8 text-center py-8 bg-blue-100 rounded-2xl shadow-sm border border-yellow-100/50">
+          <h1 className="text-6xl mb-6">🐻</h1>
+          <div className="text-3xl font-light text-slate-700 mb-4">
+            hi, <span className="underline decoration-2 underline-offset-4">{currentUser.firstName.toLowerCase()}</span> 👋
+          </div>
+          <div className="text-3xl font-light text-slate-700 mb-6">
+            you&apos;re {getArticle(currentUser.role)} <span className="underline decoration-2 underline-offset-4">{currentUser.role}</span> user.
+          </div>
+          <p className="italic text-xl font-light text-slate-500">here are our insights for you:</p>
         </div>
         
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200/50 overflow-hidden">
@@ -137,7 +146,7 @@ export default function Home() {
         </div>
         
         <div className="mt-8 text-center">
-          <p className="text-slate-400 text-sm font-light">Data refreshed in real-time</p>
+          <p className="text-slate-400 text-sm font-light">Data for demo purposes only! It's just pretend</p>
         </div>
       </div>
     </div>

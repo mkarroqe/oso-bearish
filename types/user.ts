@@ -2,7 +2,8 @@ export type UserRole = 'basic' | 'premium' | 'analyst' | 'admin';
 
 export interface User {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   role: UserRole;
 }

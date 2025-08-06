@@ -16,7 +16,7 @@ export function UserSwitcher() {
               onClick={() => login(user.id)}
               className="text-left p-4 rounded-lg border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-colors"
             >
-              <div className="font-medium text-slate-800">{user.name}</div>
+              <div className="font-medium text-slate-800">{user.firstName} {user.lastName}</div>
               <div className="text-sm text-slate-500">{user.email}</div>
               <div className="text-xs text-slate-400 mt-1 uppercase tracking-wide">
                 {user.role}
@@ -33,11 +33,11 @@ export function UserSwitcher() {
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center">
           <span className="text-slate-600 font-medium text-sm">
-            {currentUser.name.charAt(0)}
+            {currentUser.firstName.charAt(0).toUpperCase()}
           </span>
         </div>
         <div>
-          <div className="font-medium text-slate-800">{currentUser.name}</div>
+          <div className="font-medium text-slate-800">{currentUser.firstName} {currentUser.lastName}</div>
           <div className="text-sm text-slate-500">
             {currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1)} Account
           </div>
