@@ -1,3 +1,5 @@
+export type Recommendation = 'buy' | 'hold' | 'sell';
+
 export interface Stock {
   symbol: string;
   name: string;
@@ -6,4 +8,5 @@ export interface Stock {
   changePercent: number;
   volume: number;
   marketCap: number;
+  recommendation: Recommendation;
 }
