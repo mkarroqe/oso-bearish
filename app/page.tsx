@@ -247,7 +247,7 @@ export default function Home() {
         )}
         
         <div className="mt-8 text-center">
-          <p className="text-slate-400 text-sm font-light">Data for demo purposes only! It's just pretend</p>
+          <p className="text-slate-400 text-sm font-light">Data for demo purposes only! It&apos;s just pretend</p>
         </div>
       </div>
     </div>
