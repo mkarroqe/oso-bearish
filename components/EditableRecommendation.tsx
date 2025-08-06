@@ -22,7 +22,6 @@ export function EditableRecommendation({ stock, canEdit, onUpdate }: EditableRec
 
   const handleRecommendationChange = async (newRecommendation: Recommendation) => {
     if (newRecommendation === stock.recommendation) {
-      setIsEditing(false);
       return;
     }
 
