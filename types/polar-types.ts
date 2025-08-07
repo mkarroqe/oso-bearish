@@ -27,6 +27,9 @@ export interface Recommendation {
   // Empty interface for now - could add properties later
 }
 
+// Recommendation values type (for the stock recommendation field)
+export type RecommendationType = "buy" | "hold" | "sell";
+
 // Action types (extracted from Polar allow rules)
 export type Action = "view" | "modify";
 

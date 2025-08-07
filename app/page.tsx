@@ -35,7 +35,7 @@ export default function Home() {
     return ['admin', 'analyst'].includes(role) ? 'an' : 'a';
   };
 
-  const groupStocksByRecommendation = (stocks: Stock[]) => {
+  const groupStocksByRecommendation = (stocks: Stock[]): Record<Recommendation, Stock[]> => {
     return {
       buy: stocks.filter(s => s.recommendation === 'buy'),
       hold: stocks.filter(s => s.recommendation === 'hold'),  
@@ -43,11 +43,12 @@ export default function Home() {
     };
   };
 
-  const getRecommendationHeaderColor = (rec: Recommendation) => {
+  const getRecommendationHeaderColor = (rec: Recommendation): string => {
     switch (rec) {
       case 'buy': return 'bg-green-50/80';
       case 'hold': return 'bg-yellow-50/80';
       case 'sell': return 'bg-red-50/80';
+      default: return 'bg-gray-50/80';
     }
   };
 
