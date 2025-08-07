@@ -72,6 +72,7 @@ class OsoGroup {
   }
 }
 
+// TODO: better way to load this? 
 // Load policy from file - our single source of truth
 let POLICY: string;
 try {
@@ -81,7 +82,7 @@ try {
   // Fallback policy string if file can't be read
   console.warn('Could not read policies/stock-policies.polar file, using fallback policy');
   POLICY = `
-# Fallback policy - should use authorization.polar file instead
+# Fallback policy - should use stock-policies.polar file instead
 actor User {}
 resource Stock {}
 resource Recommendation {}

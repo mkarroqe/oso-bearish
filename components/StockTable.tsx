@@ -1,7 +1,7 @@
 'use client';
 
 import type { Stock, Recommendation } from '@/types/stock';
-import type { User } from '@/types';
+import type { User } from '@/types/user.ts';
 import { EditableRecommendation } from './EditableRecommendation';
 import { EditableField } from './EditableField';
 import { useStockRecommendationPermissions } from '@/hooks/useStockRecommendationPermissions';
