@@ -112,8 +112,8 @@ export async function PATCH(request: NextRequest) {
 
     // Update recommendation if provided
     if (body.recommendation) {
-      // Check if user can modify recommendations
-      const canModifyRec = await canModifyRecommendation(user);
+      // Check if user can modify recommendations for THIS SPECIFIC STOCK
+      const canModifyRec = await canModifyRecommendation(user, stock.symbol);
       if (!canModifyRec) {
         return NextResponse.json(
           { error: 'You do not have permission to modify recommendations' },
