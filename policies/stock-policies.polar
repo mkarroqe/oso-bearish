@@ -1,48 +1,82 @@
-# Authorization Policy for O(h)so Bearish Stock App
-# This is our single source of truth for types and permissions
+# Proper ReBAC Policy using Oso's resource block syntax
+# 
+# ⚠️ CRITICAL: These resource blocks define the authorization model structure
+# The TypeScript interfaces in types/polar-types.ts provide the actual data fields
 
-# Define our actors and resources
+# Define our actor - users who can perform actions
 actor User {}
-resource Stock {}
-resource Recommendation {}
-resource Group {}
 
-# BASIC USERS - Can only view basic stocks
+# Define resources with their relations
+resource Stock {
+  relations = { covered_by: Group };
+}
+
+resource Recommendation {
+  relations = { for_stock: Stock, created_by: User };
+}
+
+resource Group {
+  relations = { members: User, covers: Stock };
+}
+
+# Role-based permissions with inheritance
+# Each role inherits from the previous level
+
+# BASIC: Can view basic stocks only
 allow(user: User, "view", stock: Stock) if 
-    user.role = "basic" and
+    has_basic_access(user) and
     stock.isBasic = true;
 
-# PREMIUM USERS - Can view all stocks and recommendations  
+# PREMIUM: Can view all stocks + recommendations  
 allow(user: User, "view", _stock: Stock) if 
-    user.role = "premium";
+    has_premium_access(user);
 allow(user: User, "view", _recommendation: Recommendation) if 
-    user.role = "premium";
+    has_premium_access(user);
 
-# ANALYST USERS - Premium permissions + ReBAC for modifications
+# ANALYST: Can view everything + modify with ReBAC
 allow(user: User, "view", _stock: Stock) if 
-    user.role = "analyst";
+    has_analyst_access(user);
 allow(user: User, "view", _recommendation: Recommendation) if 
-    user.role = "analyst";
+    has_analyst_access(user);
 
-# ReBAC: Analysts can only modify recommendations for stocks their group covers
-# Special case: "super_analyst" can modify any recommendation
-allow(user: User, "modify", recommendation: Recommendation) if 
-    user.role = "analyst" and
+# Role hierarchy helpers
+has_basic_access(user: User) if user.role = "basic";
+has_basic_access(user: User) if has_premium_access(user);
+
+has_premium_access(user: User) if user.role = "premium"; 
+has_premium_access(user: User) if has_analyst_access(user);
+
+has_analyst_access(user: User) if user.role = "analyst";
+has_analyst_access(user: User) if has_admin_access(user);
+
+has_admin_access(user: User) if user.role = "admin";
+
+# ANALYST ReBAC - Super analysts can modify anything
+allow(user: User, "modify", _recommendation: Recommendation) if 
+    has_analyst_access(user) and
     user.analyst_type = "super";
 
-# Regular analysts: must be in a group that covers the stock
+# ANALYST ReBAC - Regular analysts need group coverage
 allow(user: User, "modify", recommendation: Recommendation) if 
-    user.role = "analyst" and
+    has_analyst_access(user) and
     user.analyst_type = "regular" and
-    group in user.groups and
-    recommendation.stock_symbol in group.covered_stocks;
+    analyst_can_modify_stock(user, recommendation.stock_symbol);
 
-# ADMIN USERS - Analyst permissions + can modify stock data
-allow(user: User, "view", _stock: Stock) if 
-    user.role = "admin";
-allow(user: User, "view", _recommendation: Recommendation) if 
-    user.role = "admin";
-allow(user: User, "modify", _recommendation: Recommendation) if 
-    user.role = "admin";
+# Helper rule: Check if analyst's group covers the stock
+analyst_can_modify_stock(user: User, stock_symbol: String) if
+    group_id in user.groups and
+    group_covers_stock(group_id, stock_symbol);
+
+# Fact: Define which groups cover which stocks
+group_covers_stock("tech", "NVDA");
+group_covers_stock("tech", "AAPL"); 
+group_covers_stock("tech", "GOOGL");
+group_covers_stock("tech", "META");
+group_covers_stock("tech", "MSFT");
+group_covers_stock("tech", "TSLA");
+group_covers_stock("tech", "AMZN");
+group_covers_stock("finance", "BRK.A");
+
+# ADMIN: Can modify stocks (inherits all view permissions)
 allow(user: User, "modify", _stock: Stock) if 
-    user.role = "admin";
+    has_admin_access(user);

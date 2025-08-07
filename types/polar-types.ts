@@ -1,4 +1,11 @@
-// Actor types (defined in Polar)
+// ⚠️ CRITICAL: These TypeScript types MUST match the structured blocks in policies/stock-policies.polar
+// 
+// Polar Policy Location: policies/stock-policies.polar (lines 2-48)
+// When updating these interfaces, also update the corresponding Polar actor/resource blocks!
+// 
+// TODO: Consider using Oso's type generation tools for production to eliminate this duplication
+
+// Actor types (MUST match Polar actor blocks)
 export interface User {
   id: string;
   role: "basic" | "premium" | "analyst" | "admin";
@@ -24,7 +31,14 @@ export interface Stock {
 }
 
 export interface Recommendation {
-  stock_symbol: string; 
+  id: string;
+  stock_symbol: string;
+  recommendation: "buy" | "hold" | "sell";
+  created_by: string;
+  visibility: "private" | "group" | "organization" | "public";
+  shared_with: string[];
+  created_at: Date;
+  reasoning?: string;
 }
 
 export interface Group {
