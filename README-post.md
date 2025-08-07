@@ -1,4 +1,4 @@
-# Beyond RBAC: Team-Based Authorization for B2B Applications
+# From Conditional Chaos to Clean Policies: Building Authorization That Scales
 
 Building B2B SaaS authorization starts simple: users, admins, maybe premium tiers. Then your first enterprise customer asks: 
 
@@ -46,7 +46,7 @@ ReBAC fundamentally changes your authorization model from static role assignment
 Here's an example of how we implement team-based stock authorization with Oso:
 
 ```polar
-# Phase 3: ReBAC with Oso - Clean, policy-driven relationships
+# Phase 3: clean, policy-driven relationships with Oso
 allow(user: User, "modify", recommendation: Recommendation) if
     has_analyst_access(user) and
     user.analyst_type = "regular" and
@@ -72,7 +72,7 @@ The key architectural insight: **business logic lives in one place, not scattere
 - Onboard a new analyst? Assign groups, and permissions flow automatically.
 - Audit who can access what? Query the policy, not your codebase.
 
-Our [demo](https://github.com/mkarroqe/oso-bearish) implements a complete ReBAC authorization system for a stock recommendation platform:
+Our [demo](https://github.com/mkarroqe/oso-bearish) app implements a complete ReBAC authorization system for a stock recommendation platform:
 
 ```typescript
 // Type-safe authorization functions
@@ -86,6 +86,7 @@ export async function canModifyStockRecommendation(
   return oso.isAllowed(osoUser, 'modify', osoStock);
 }
 ```
+Check out the full policy file with walkthrough comments [here](https://github.com/mkarroqe/oso-bearish/polices/stock-policies.polar).
 
 ## Migration Strategy: From Conditional Chaos to ReBAC
 
@@ -131,11 +132,11 @@ As relationship coverage expands, remove hardcoded role checks. Track your progr
 - Conditional complexity reduced
 - Policy coverage increased
 
-## The Bottom Line
+## Authorization That Grows With You
 
 Authorization complexity is inevitable in B2B applications. The question isn't whether you'll need relationship-based permissions, but whether you'll implement them maintainably.
 
 ReBAC with Oso provides the architectural foundation for authorization that scales with your business relationships, not against them. When your next enterprise customer asks for team-based access controls, you'll have the infrastructure to say yes.
 
 ---
-> Check out our [complete demo repository](https://github.com/mkarroqe/oso-bearish) with full TypeScript implementation and Polar policies! The demo includes six user personas demonstrating role hierarchy, team-based restrictions, and admin overrides across a realistic B2B authorization model.
+> Check out our [complete demo repository](https://github.com/mkarroqe/oso-bearish) with full TypeScript implementation and Polar policies. The demo includes six user personas demonstrating role hierarchy, team-based restrictions, and admin overrides across a realistic B2B authorization model.
