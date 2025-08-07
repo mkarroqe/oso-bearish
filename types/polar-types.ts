@@ -1,6 +1,3 @@
-// Generated TypeScript types based on authorization.polar
-// This is our single source of truth for authorization types
-
 // Actor types (defined in Polar)
 export interface User {
   id: string;
@@ -8,6 +5,9 @@ export interface User {
   firstName: string;
   lastName: string;
   email: string;
+  // ReBAC fields
+  analyst_type?: "regular" | "super";  // For analysts only
+  groups: string[];                    // Group IDs user belongs to
 }
 
 // Resource types (defined in Polar)
@@ -24,7 +24,14 @@ export interface Stock {
 }
 
 export interface Recommendation {
-  // Empty interface for now - could add properties later
+  stock_symbol: string; 
+}
+
+export interface Group {
+  id: string;
+  name: string;
+  description: string;
+  covered_stocks: string[];  // Stock symbols this group covers
 }
 
 // Recommendation values type (for the stock recommendation field)
@@ -34,7 +41,7 @@ export type RecommendationType = "buy" | "hold" | "sell";
 export type Action = "view" | "modify";
 
 // Resource union type
-export type Resource = Stock | Recommendation;
+export type Resource = Stock | Recommendation | Group;
 
 // Type for Oso authorization checks
 export interface PolarTypes {
@@ -44,6 +51,7 @@ export interface PolarTypes {
   resources: {
     Stock: Stock;
     Recommendation: Recommendation;
+    Group: Group;
   };
   actions: Action;
 }

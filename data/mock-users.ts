@@ -6,28 +6,51 @@ export const mockUsers: User[] = [
     firstName: 'Betty',
     lastName: 'Baesic',
     email: 'basicbasedbetty@osohq.com',
-    role: 'basic'
+    role: 'basic',
+    groups: []
   },
   {
     id: '2', 
     firstName: 'Priya',
     lastName: 'Mium',
     email: 'mipri@osohq.com',
-    role: 'premium'
+    role: 'premium',
+    groups: []
   },
   {
     id: '3',
     firstName: 'Ana',
     lastName: 'Lyst',
     email: 'analystana@osohq.com', 
-    role: 'analyst'
+    role: 'analyst',
+    analyst_type: 'super',
+    groups: ['tech', 'finance'] 
   },
   {
     id: '4',
     firstName: 'Addie',
     lastName: 'Min',
     email: 'whatstheaddie@osohq.com',
-    role: 'admin'
+    role: 'admin',
+    groups: []
+  },
+  {
+    id: '5',
+    firstName: 'Al',
+    lastName: 'Gorithm', 
+    email: 'goalgo@osohq.com',
+    role: 'analyst',
+    analyst_type: 'regular',
+    groups: ['tech'] // Tech analyst only
+  },
+  {
+    id: '6',
+    firstName: 'Finn',
+    lastName: 'Tek',
+    email: 'finnancial@osohq.com', 
+    role: 'analyst',
+    analyst_type: 'regular',
+    groups: ['finance'] // Finance analyst only
   }
 ];
 
