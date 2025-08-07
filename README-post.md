@@ -1,65 +1,82 @@
-# Beyond RBAC: Scaling Authorization as Your B2B SaaS Grows
+# Beyond RBAC: Team-Based Authorization for B2B Applications
 
-Your SaaS started simple. Basic users, premium users, admins. Clean, easy roles. Then you hit product-market fit, scaled your team, and suddenly authorization became your architectural nightmare.
+Building B2B SaaS authorization starts simple: users, admins, maybe premium tiers. Then your first enterprise customer asks: 
 
-Sound familiar? Here's how we solved team-based authorization at scale using ReBAC (Relationship-Based Access Control) with Oso.
+> *"Can finance analysts only modify financial data while tech analysts handle technology assets?"* 
 
-## The Growing Pains: When RBAC Breaks Down
+Your clean RBAC model just hit the wall of real-world business relationships.
 
-Let's say you're building a financial analytics platform. You start with:
+This is the authorization scaling challenge every B2B application faces. Here's how Relationship-Based Access Control (ReBAC) solves it, and why your next authorization decision should be relationship-driven.
+
+## The RBAC Scaling Problem
+
+Consider a financial analytics platform. Your initial authorization model looks clean:
 
 ```typescript
-// Simple RBAC - worked great at first
+// Phase 1: Simple role checks
 if (user.role === 'analyst') {
-  return canEditRecommendations();
+  return canModifyRecommendations(user);
 }
 ```
 
-Then business reality hits:
-- Tech analysts should only edit tech stock recommendations
-- Finance analysts only handle financial sector stocks  
-- Some analysts are "super" analysts who can edit everything
+But business requirements evolve. Real organizations have structure:
+- **Technology analysts** manage tech stocks (NVIDIA, Apple, Google)
+- **Finance analysts** handle financial stocks (JPMorgan, Berkshire Hathaway)  
+- **Senior analysts** can modify anything
+- **Admins** control system-wide permissions
 
-Suddenly your authorization code looks like:
+Your authorization logic becomes a maintenance nightmare:
 
 ```typescript
-// Authorization logic spreading everywhere 😱
+// Phase 2: The conditional explosion
 if (user.role === 'analyst' && 
-    user.analyst_type === 'regular' && 
-    user.groups.includes('tech') && 
-    stock.industry === 'tech') {
+    ((user.department === 'tech' && stock.sector === 'technology') ||
+     (user.department === 'finance' && stock.sector === 'financial') ||
+     user.seniority === 'senior')) {
   return true;
 }
 ```
 
-This hardcoded approach doesn't scale. Every new team, every new business rule means touching authorization code across your entire application.
+This approach fails because **it hardcodes business relationships in application logic**. Every new team, every organizational change, every business rule requires touching code across your entire application. It doesn't scale.
 
-## Enter ReBAC: Relationships, Not Just Roles
+## ReBAC: Authorization Through Relationships
 
-ReBAC shifts from asking "What role does this user have?" to "What relationships does this user have with this resource?"
+ReBAC fundamentally changes your authorization model from static role assignments to dynamic relationship queries. Instead of hardcoding *"analysts can edit,"* you define relationships: users belong to groups, groups cover resources, and permissions flow through these relationships.
 
-Here's how we modeled team-based stock authorization with Oso:
+Here's an example of how we implement team-based stock authorization with Oso:
 
 ```polar
-# Policy-driven authorization that scales
+# Phase 3: ReBAC with Oso - Clean, policy-driven relationships
+allow(user: User, "modify", recommendation: Recommendation) if
+    has_analyst_access(user) and
+    user.analyst_type = "regular" and
+    analyst_can_modify_stock(user, recommendation.stock_symbol);
+
+# The relationship rule that replaces hardcoded conditionals
 analyst_can_modify_stock(user: User, stock_symbol: String) if
     group_id in user.groups and
     group_covers_stock(group_id, stock_symbol);
 
-# Define which groups cover which stocks
+# Business relationships as declarative facts
 group_covers_stock("tech", "NVDA");
 group_covers_stock("tech", "AAPL");
 group_covers_stock("finance", "JPM");
+group_covers_stock("finance", "BRK.A");
 ```
 
-The magic? Business logic lives in policy, not scattered across your codebase.
+The key architectural insight: **business logic lives in one place, not scattered across your codebase**. When your organization adds a new team or changes stock coverage, you update **facts** in Polar files, not application code.
 
-## TypeScript + Oso: Type-Safe Authorization
+**This scales in ways traditional authorization doesn't:**
+- Add 50 new stocks across 5 teams? Add facts, not code changes.
+- Restructure your organization? Update relationships, not conditionals.
+- Onboard a new analyst? Assign groups, and permissions flow automatically.
+- Audit who can access what? Query the policy, not your codebase.
 
-Senior developers love this part. Your authorization becomes as type-safe as the rest of your TypeScript application:
+Our [demo](https://github.com/mkarroqe/oso-bearish) implements a complete ReBAC authorization system for a stock recommendation platform:
 
 ```typescript
-export async function canModifyStock(
+// Type-safe authorization functions
+export async function canModifyStockRecommendation(
   user: User, 
   stock: Stock
 ): Promise<boolean> {
@@ -70,44 +87,55 @@ export async function canModifyStock(
 }
 ```
 
-IDE autocompletion, compile-time safety, and refactoring support for security-critical code.
+## Migration Strategy: From Conditional Chaos to ReBAC
 
-## The Demo: Stock Recommendations Platform
+Remember that Phase 2 conditional explosion? You don't have to live with it forever, but don't rewrite your authorization system overnight either. Here's the proven migration pattern that transforms scattered conditionals into maintainable policies, and improves performance:
 
-I built a [Next.js demo](https://github.com/your-repo) that showcases this pattern:
-
-- **Al Gorithm** (tech analyst) can edit NVIDIA and Apple recommendations
-- **Finn Tek** (finance analyst) can edit JPMorgan recommendations  
-- **Ana Lyst** (super analyst) can edit everything
-- **Addie Min** (admin) has full access
-
-The key insight: authorization logic is centralized in Polar policies, not scattered through React components or API routes.
-
-## Performance at Scale: Bulk Authorization
-
-Growing SaaS means more users, more data, more permission checks. We solved the N+1 authorization problem with bulk APIs:
+#### 1. Start with ReBAC for New Features
+Instead of adding more conditionals to your existing mess, implement relationship-based rules for new functionality:
 
 ```typescript
-// Before: 8 stocks = 8 API calls 😰
-stocks.map(stock => canModify(user, stock))
+// Don't add to the conditional explosion
+if (user.role === 'analyst' && /* 20 more conditions */) {
+  // New feature logic here
+}
 
-// After: 8 stocks = 1 API call 🚀
-await canModifyStocksBulk(user, stocks)
+// Start fresh with ReBAC
+const allowed = await oso.isAllowed(user, 'modify', newResource);
+```
+#### 2. Create Compatibility Layers
+Use Oso's flexibility to maintain existing RBAC alongside new ReBAC rules. Your old hardcoded checks can coexist:
+
+```
+# Support legacy role checks during migration
+allow(user: User, "modify", stock: Stock) if
+    legacy_analyst_check(user, stock);
+
+# While building new relationship-based rules
+allow(user: User, "modify", stock: Stock) if
+    has_analyst_access(user) and
+    analyst_can_modify_stock(user, stock.symbol);
 ```
 
-## Why CTOs Care
+#### 3. Migrate Hot Paths Incrementally
+Convert your highest-traffic authorization points first. Focus on:
+- API endpoints with complex conditional logic
+- UI components with scattered permission checks
+- Background jobs with authorization requirements
 
-- **Audit trails**: Every permission decision is traceable
-- **Compliance**: Centralized policies make SOX/SOC2 easier
-- **Developer velocity**: New features don't require authorization rewrites
-- **Security**: Policy-driven is harder to get wrong than scattered conditionals
+Each migration reduces your "conditional debt" while improving maintainability.
+
+#### 4. Deprecate Gradually
+As relationship coverage expands, remove hardcoded role checks. Track your progress:
+- Lines of authorization code deleted
+- Conditional complexity reduced
+- Policy coverage increased
 
 ## The Bottom Line
 
-ReBAC isn't just a pattern—it's how authorization grows with your business. When your next business requirement is "users can only access resources their team owns," you'll be ready.
+Authorization complexity is inevitable in B2B applications. The question isn't whether you'll need relationship-based permissions, but whether you'll implement them maintainably.
 
-Your authorization system should scale as elegantly as your product. With Oso and ReBAC, it can.
+ReBAC with Oso provides the architectural foundation for authorization that scales with your business relationships, not against them. When your next enterprise customer asks for team-based access controls, you'll have the infrastructure to say yes.
 
 ---
-
-*Want to see the full implementation? Check out the [demo repository](https://github.com/your-repo) with complete TypeScript examples and Polar policies.*
+> Check out our [complete demo repository](https://github.com/mkarroqe/oso-bearish) with full TypeScript implementation and Polar policies! The demo includes six user personas demonstrating role hierarchy, team-based restrictions, and admin overrides across a realistic B2B authorization model.
