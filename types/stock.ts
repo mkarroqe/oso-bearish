@@ -9,4 +9,5 @@ export interface Stock {
   volume: number;
   marketCap: number;
   recommendation: Recommendation;
+  isBasic: boolean;
 }

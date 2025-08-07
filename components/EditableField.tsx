@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useUser } from '@/contexts/UserContext';
 
 interface EditableFieldProps {
   value: string | number;
@@ -28,9 +29,10 @@ export function EditableField({
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(value.toString());
   const [isUpdating, setIsUpdating] = useState(false);
+  const { currentUser } = useUser();
 
   const handleSubmit = async () => {
-    if (editValue === value.toString()) {
+    if (editValue === value.toString() || !currentUser) {
       setIsEditing(false);
       return;
     }
@@ -39,7 +41,7 @@ export function EditableField({
     try {
       const finalValue = type === 'number' ? parseFloat(editValue) : editValue;
       
-      const response = await fetch(`/api/stocks?symbol=${symbol}`, {
+      const response = await fetch(`/api/stocks?symbol=${symbol}&userId=${currentUser.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -50,7 +52,9 @@ export function EditableField({
       if (response.ok) {
         onUpdate(symbol, field, finalValue);
       } else {
-        console.error('Failed to update field');
+        const error = await response.json();
+        console.error('Failed to update field:', error);
+        alert(error.error || 'Failed to update field');
         setEditValue(value.toString()); // Reset on error
       }
     } catch (error) {
