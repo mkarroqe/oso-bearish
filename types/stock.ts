@@ -1,13 +1,6 @@
-export type Recommendation = 'buy' | 'hold' | 'sell';
+// Re-export types from our single source of truth
+export type { Stock, Recommendation } from './polar-types';
 
-export interface Stock {
-  symbol: string;
-  name: string;
-  price: number;
-  change: number;
-  changePercent: number;
-  volume: number;
-  marketCap: number;
-  recommendation: Recommendation;
-  isBasic: boolean;
-}
+// Extract recommendation type for convenience
+export type { Stock } from './polar-types';
+export type Recommendation = Stock['recommendation'];

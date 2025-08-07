@@ -1,6 +1,7 @@
 import { Oso } from 'oso';
-import type { Stock } from '@/types/stock';
-import type { User } from '@/types/user';
+import type { Stock, User, Action, PolarTypes } from '@/types/polar-types';
+import { readFileSync } from 'fs';
+import path from 'path';
 
 // Create a class for Oso to use at runtime
 // Oso needs actual JavaScript classes, not TypeScript interfaces
@@ -46,46 +47,34 @@ class OsoRecommendation {
   _type: string = 'Recommendation';
 }
 
-// Our policy rules as a string (for Next.js compatibility)
-const POLICY = `
-# Define actors and resources
+// Load policy from file - our single source of truth
+let POLICY: string;
+try {
+  const policyPath = path.join(process.cwd(), 'policies', 'stock-policies.polar');
+  POLICY = readFileSync(policyPath, 'utf-8');
+} catch (error) {
+  // Fallback policy string if file can't be read
+  console.warn('Could not read policies/stock-policies.polar file, using fallback policy');
+  POLICY = `
+# Fallback policy - should use authorization.polar file instead
 actor User {}
 resource Stock {}
 resource Recommendation {}
 
-# BASIC USERS
-# Can only view limited stocks
 allow(user: User, "view", stock: Stock) if 
-    user.role = "basic" and
-    stock.isBasic = true;
-
-# PREMIUM USERS  
-# Can view all stocks and recommendations
-allow(user: User, "view", _: Stock) if 
-    user.role = "premium";
-allow(user: User, "view", _: Recommendation) if 
-    user.role = "premium";
-
-# ANALYST USERS
-# Premium + can modify recommendations
-allow(user: User, "view", _: Stock) if 
-    user.role = "analyst";
-allow(user: User, "view", _: Recommendation) if 
-    user.role = "analyst";
-allow(user: User, "modify", _: Recommendation) if 
-    user.role = "analyst";
-
-# ADMIN USERS
-# Analyst + can modify stocks
-allow(user: User, "view", _: Stock) if 
-    user.role = "admin";
-allow(user: User, "view", _: Recommendation) if 
-    user.role = "admin";
-allow(user: User, "modify", _: Recommendation) if 
-    user.role = "admin";
-allow(user: User, "modify", _: Stock) if 
-    user.role = "admin";
+    user.role = "basic" and stock.isBasic = true;
+allow(user: User, "view", _: Stock) if user.role = "premium";
+allow(user: User, "view", _: Recommendation) if user.role = "premium";
+allow(user: User, "view", _: Stock) if user.role = "analyst";
+allow(user: User, "view", _: Recommendation) if user.role = "analyst";
+allow(user: User, "modify", _: Recommendation) if user.role = "analyst";
+allow(user: User, "view", _: Stock) if user.role = "admin";
+allow(user: User, "view", _: Recommendation) if user.role = "admin";
+allow(user: User, "modify", _: Recommendation) if user.role = "admin";
+allow(user: User, "modify", _: Stock) if user.role = "admin";
 `;
+throw error;
+}
 
 // Create and configure Oso instance
 let osoInstance: Oso | null = null;
@@ -115,33 +104,43 @@ export function getOso(): Oso {
   return osoInstance;
 }
 
-// Helper functions for authorization checks
+// Type-safe helper functions for authorization checks
+export async function canPerformAction<T extends keyof PolarTypes['resources']>(
+  user: User, 
+  action: Action, 
+  resource: PolarTypes['resources'][T] | OsoStock | OsoRecommendation
+): Promise<boolean> {
+  const oso = getOso();
+  const osoUser = new OsoUser(user);
+  return oso.isAllowed(osoUser, action, resource);
+}
+
+// Convenience functions with better type safety
 export async function canViewStock(user: User, stock: Stock): Promise<boolean> {
   const oso = getOso();
   const osoUser = new OsoUser(user);
   const osoStock = new OsoStock(stock);
-  return oso.isAllowed(osoUser, 'view', osoStock);
+  return oso.isAllowed(osoUser, 'view' as Action, osoStock);
 }
 
 export async function canViewRecommendation(user: User): Promise<boolean> {
   const oso = getOso();
   const osoUser = new OsoUser(user);
   const recommendation = new OsoRecommendation();
-  return oso.isAllowed(osoUser, 'view', recommendation);
+  return oso.isAllowed(osoUser, 'view' as Action, recommendation);
 }
 
 export async function canModifyRecommendation(user: User): Promise<boolean> {
   const oso = getOso();
   const osoUser = new OsoUser(user);
   const recommendation = new OsoRecommendation();
-  return oso.isAllowed(osoUser, 'modify', recommendation);
+  return oso.isAllowed(osoUser, 'modify' as Action, recommendation);
 }
 
 export async function canModifyStock(user: User): Promise<boolean> {
   const oso = getOso();
   const osoUser = new OsoUser(user);
   // For modify checks, we don't need a specific stock instance
-  // Just checking if user can modify any stock
   const stock = new OsoStock({
     symbol: '',
     name: '',
@@ -153,7 +152,7 @@ export async function canModifyStock(user: User): Promise<boolean> {
     recommendation: 'hold',
     isBasic: false
   });
-  return oso.isAllowed(osoUser, 'modify', stock);
+  return oso.isAllowed(osoUser, 'modify' as Action, stock);
 }
 
 // Get all permissions for a user
