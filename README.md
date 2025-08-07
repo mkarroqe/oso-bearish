@@ -26,33 +26,52 @@ open http://localhost:3000
 
 ## 👥 User Roles & Permissions
 
-| User | Role | Email | Key Permissions |
-|------|------|-------|-----------------|
-| **Betty Baesic** | Basic | basicbasedbetty@osohq.com | • View basic stocks only<br>• No recommendations access |
-| **Priya Mium** | Premium | mipri@osohq.com | • View all stocks<br>• View recommendations<br>• Cannot edit |
-| **Addie Min** | Admin | whatstheaddie@osohq.com | • Full access to everything<br>• Edit all stocks & recommendations |
-| **Ana Lyst** | Super Analyst | analystana@osohq.com | • View all stocks<br>• Edit ALL recommendations |
-| **Al Gorithm** | Tech Analyst | goalgo@osohq.com | • View all stocks<br>• Edit ONLY tech stock recommendations |
-| **Finn Tek** | Finance Analyst | finnancial@osohq.com | • View all stocks<br>• Edit ONLY finance stock recommendations |
+### Role Hierarchy & Permission Inheritance
 
-## 📊 Stock Categories & Permissions
+```
+Basic ──► Premium ──► Analyst ──► Admin
+  │         │           │          │
+  │         │           │          └─ Can modify stock data
+  │         │           └─ Can modify recommendations (based on groups)
+  │         └─ Can view all stocks & recommendations  
+  └─ Can view basic stocks only
+```
 
-| Category | Stocks | Who Can Edit Recommendations |
-|----------|--------|------------------------------|
-| **Technology** | NVDA, AAPL, GOOGL, META, MSFT, AMZN | • Al Gorithm (Tech Analyst)<br>• Ana Lyst (Super Analyst)<br>• Addie Min (Admin) |
-| **Financial Services** | JPM, BRK.A | • Finn Tek (Finance Analyst)<br>• Ana Lyst (Super Analyst)<br>• Addie Min (Admin) |
+> **Note:** Each role inherits all permissions from the previous level.
+
+### Demo Users & Their Access
+
+| User | ID | Role | Groups | What They Can Do |
+|------|:--:|------|:------:|------------------|
+| **Betty Baesic** | 1 | Basic | - | • View basic stocks only |
+| **Priya Mium** | 2 | Premium | - | • Basic access<br/> • View premium stocks<br>• View recommendations |
+| **Addie Min** | 3 | Admin | - | • Premium access<br>• Edit all stocks & recommendations |
+| **Ana Lyst** | 4 | Super Analyst | tech, finance | • Premium access<br/>• Edit ALL recommendations |
+| **Al Gorithm** | 5 | Regular Analyst | tech | • Premium access<br/>• Edit `tech` stock recommendations only |
+| **Finn Tek** | 6 | Regular Analyst | finance | • Premium access<br/>• Edit `finance` stock recommendations only |
+
+### Group-Based Permissions (ReBAC)
+
+| Group | Stocks Covered | Who Has Edit Access |
+|-------|---------------|----------------|
+| **tech** | NVDA, AAPL, GOOGL, META, MSFT, AMZN | • Al Gorithm<br>• Ana Lyst |
+| **finance** | JPM, BRK.A | • Finn Tek<br>• Ana Lyst |
+
+> **Note:** `regular` analysts can only modify stocks in their assigned groups, while `super` analysts can modify any stock.
 
 ## 🏗️ Architecture
-
 ### Authorization Flow
 ```
-User Action → React Component → API Route → Oso Policy → Response
-                                    ↓
-                              Authorization Decision
-                                    ↓
-                              Granted/Denied
+  User Action → React Component → API Route → Oso Policy Engine
+                                       ↓           ↓
+                                Extract User    Evaluate Rules
+                                       ↓           ↓
+                                    Authorization Check
+                                            ↓
+                                        Allow/Deny
+                                            ↓
+                                         Response
 ```
-
 ### Key Components
 
 | Component | Purpose | Location |
@@ -62,49 +81,6 @@ User Action → React Component → API Route → Oso Policy → Response
 | **Browser Client** | Client-side permission fetching | `/lib/oso-client-browser.ts` |
 | **Bulk Permissions API** | Performance-optimized batch checks | `/api/auth/bulk-stock-permissions` |
 | **Stock Table** | Dynamic UI based on permissions | `/components/StockTable.tsx` |
-
-## 🔐 Authorization Implementation
-
-### Role Hierarchy
-```
-Basic → Premium → Analyst → Admin
-```
-Each role inherits permissions from the previous level.
-
-### ReBAC Rules
-```polar
-# Analysts can only modify stocks their groups cover
-analyst_can_modify_stock(user: User, stock_symbol: String) if
-    group_id in user.groups and
-    group_covers_stock(group_id, stock_symbol);
-```
-
-### TypeScript Integration
-```typescript
-export async function canModifyStock(
-  user: User, 
-  stock: Stock
-): Promise<boolean> {
-  const oso = getOso();
-  return oso.isAllowed(new OsoUser(user), 'modify', new OsoStock(stock));
-}
-```
-
-## 📈 Performance Features
-
-| Feature | Description | Benefit |
-|---------|-------------|---------|
-| **Bulk API** | Single request for multiple permissions | 87.5% fewer API calls |
-| **Permission Caching** | Hook-based caching | Reduced server load |
-| **Singleton Oso Instance** | Single policy load | Faster authorization checks |
-
-## 🛠️ Tech Stack
-
-- **Framework**: Next.js 14 with App Router
-- **Language**: TypeScript
-- **Authorization**: Oso (Polar policies)
-- **Styling**: Tailwind CSS
-- **State Management**: React Context + Hooks
 
 ## 📝 API Endpoints
 
@@ -116,32 +92,10 @@ export async function canModifyStock(
 | `/api/stocks` | GET | Fetch stocks (filtered by permissions) |
 | `/api/stocks` | PATCH | Update stock/recommendation |
 
-## 🧪 Testing Authorization
-
-1. **Switch users** using the User Switcher dropdown
-2. **Try editing** different stock recommendations
-3. **Observe** how permissions change based on user role and team membership
-
-### Test Scenarios
-
-| Scenario | User | Action | Expected Result |
-|----------|------|--------|-----------------|
-| Basic Access | Betty Baesic | View premium stocks | ❌ Hidden |
-| Team-Based Edit | Al Gorithm | Edit NVDA recommendation | ✅ Allowed |
-| Cross-Team Edit | Al Gorithm | Edit JPM recommendation | ❌ Disabled |
-| Super Analyst | Ana Lyst | Edit any recommendation | ✅ Allowed |
-| Admin Override | Addie Min | Edit anything | ✅ Allowed |
+> To review the complete API docs, click [here](README-API.md).
 
 ## 📚 Learn More
 
 - [Technical Blog Post](./README-post.md) - Deep dive into ReBAC implementation
 - [Oso Documentation](https://www.osohq.com/docs) - Official Oso docs
 - [Polar Language Guide](https://www.osohq.com/docs/guides/polar-syntax) - Policy language reference
-
-## 🤝 Contributing
-
-This is a demonstration project showcasing Oso authorization patterns. Feel free to fork and adapt for your own use cases!
-
-## 📄 License
-
-MIT

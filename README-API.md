@@ -109,19 +109,9 @@ PATCH /api/stocks?symbol={symbol}&userId={userId}
 }
 ```
 
-## 🔐 Authorization Matrix
-
-| User | `userId` | Role | View Basic | View All | View Recs | Modify Tech Recs | Modify Finance Recs | Modify Stock Data |
-|------|:--------:|------|:----------:|:--------:|:---------:|:----------------:|:-------------------:|:-----------------:|
-| Betty | 1 | Basic | ✅ | - | - | - | - | - |
-| Priya | 2 | Premium | ✅ | ✅ | ✅ | - | - | - |
-| Addie | 3 | Admin | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Ana | 4 | Super Analyst | ✅ | ✅ | ✅ | ✅ | ✅ | - |
-| Al | 5 | Tech Analyst | ✅ | ✅ | ✅ | ✅ | - | - |
-| Finn | 6 | Finance Analyst | ✅ | ✅ | ✅ | - | ✅ | - |
-
 ## 📚 Related Documentation
 
 - [Main README](./README.md) - Project overview
 - [Technical Blog Post](./README-post.md) - Deep dive into ReBAC
-- [Polar Policy](./policies/stock-policies.polar) - Authorization rules
+- [Oso Documentation](https://www.osohq.com/docs) - Official Oso docs
+- [Polar Language Guide](https://www.osohq.com/docs/guides/polar-syntax) - Policy language reference

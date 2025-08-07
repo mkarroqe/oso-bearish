@@ -1,93 +1,162 @@
-# NOTE: These resource blocks define the authorization model structure
-# The TypeScript interfaces in types/polar-types.ts provide the actual data fields
+# 🐻 Oso Bearish Stock Authorization Policy
+# 
+# This file demonstrates how to implement both Role-Based Access Control (RBAC) 
+# and Relationship-Based Access Control (ReBAC) using Oso's Polar language.
+#
+# 📚 Learning Guide:
+# - RBAC: Permissions based on user roles (basic, premium, analyst, admin)
+# - ReBAC: Permissions based on relationships (user → group → stock)
+# - Inheritance: Higher roles get all permissions of lower roles
+# - Facts: Static data that defines relationships (group_covers_stock)
 
-# Define our actor - users who can perform actions
+# ========================================================================================
+# 🏗️ RESOURCE DEFINITIONS
+# ========================================================================================
+# These define the "shape" of your authorization model
+# Think of these as the entities that can have permissions
+
+# Users are "actors" - they perform actions
 actor User {}
 
-# Define resources with their relations
+# Resources are things that can be acted upon
 resource Stock {
-  relations = { covered_by: Group };
+  relations = { covered_by: Group };  # Stocks can be covered by analyst groups
 }
 
 resource Recommendation {
-  relations = { for_stock: Stock, created_by: User };
+  relations = { for_stock: Stock, created_by: User };  # Links recommendations to stocks/users
 }
 
 resource Group {
-  relations = { members: User, covers: Stock };
+  relations = { members: User, covers: Stock };  # Groups contain users and cover stocks
 }
 
-# Role-based permissions with inheritance
-# Each role inherits from the previous level
+# ========================================================================================
+# 🔐 RBAC: ROLE-BASED ACCESS CONTROL
+# ========================================================================================
+# Each role inherits permissions from the previous level:
+# Basic → Premium → Analyst → Admin
 
-# BASIC: Can view basic stocks only
+# BASIC USERS: Most restricted access
+# Can only view stocks marked as "basic" (like free tier)
 allow(user: User, "view", stock: Stock) if 
-    has_basic_access(user) and
-    stock.isBasic = true;
+    has_basic_access(user) and    # Must be basic user or higher
+    stock.isBasic = true;         # Stock must be marked as basic
 
-# PREMIUM: Can view all stocks + recommendations  
+# PREMIUM USERS: Basic access + can view all stocks and recommendations
 allow(user: User, "view", _stock: Stock) if 
-    has_premium_access(user);
-allow(user: User, "view", _recommendation: Recommendation) if 
-    has_premium_access(user);
+    has_premium_access(user);     # Any stock, regardless of isBasic flag
 
-# ANALYST: Can view everything + modify with ReBAC
+allow(user: User, "view", _recommendation: Recommendation) if 
+    has_premium_access(user);     # Can see buy/hold/sell recommendations
+
+# ANALYSTS: Premium access + can modify recommendations (with ReBAC restrictions)
 allow(user: User, "view", _stock: Stock) if 
-    has_analyst_access(user);
+    has_analyst_access(user);     # Inherits premium view permissions
+
 allow(user: User, "view", _recommendation: Recommendation) if 
-    has_analyst_access(user);
+    has_analyst_access(user);     # Inherits premium view permissions
 
-# Role hierarchy helpers
-has_basic_access(user: User) if user.role = "basic";
-has_basic_access(user: User) if has_premium_access(user);
+# ADMINS: Full access to everything (defined at bottom)
 
-has_premium_access(user: User) if user.role = "premium"; 
-has_premium_access(user: User) if has_analyst_access(user);
+# ========================================================================================
+# 🏛️ ROLE HIERARCHY HELPERS
+# ========================================================================================
+# These functions implement inheritance: higher roles get lower role permissions
+# Example: An admin automatically gets analyst, premium, AND basic permissions
 
-has_analyst_access(user: User) if user.role = "analyst";
-has_analyst_access(user: User) if has_admin_access(user);
+has_basic_access(user: User) if user.role = "basic";        # Basic users have basic access
+has_basic_access(user: User) if has_premium_access(user);   # Premium+ users also have basic access
 
-has_admin_access(user: User) if user.role = "admin";
+has_premium_access(user: User) if user.role = "premium";    # Premium users have premium access
+has_premium_access(user: User) if has_analyst_access(user); # Analyst+ users also have premium access
 
-# ANALYST ReBAC - Super analysts can modify anything
+has_analyst_access(user: User) if user.role = "analyst";    # Analysts have analyst access
+has_analyst_access(user: User) if has_admin_access(user);   # Admins also have analyst access
+
+has_admin_access(user: User) if user.role = "admin";        # Only admins have admin access
+
+# ========================================================================================
+# 🌐 REBAC: RELATIONSHIP-BASED ACCESS CONTROL
+# ========================================================================================
+# Instead of just checking roles, we check 
+# relationships between users, groups, and stocks.
+
+# SUPER ANALYSTS: Can modify ANY recommendation (no group restrictions)
+# Example: Ana Lyst can edit recommendations for both tech AND finance stocks
 allow(user: User, "modify", _recommendation: Recommendation) if 
-    has_analyst_access(user) and
-    user.analyst_type = "super";
+    has_analyst_access(user) and      # Must be analyst or admin
+    user.analyst_type = "super";      # Must be "super" type analyst
 
-# ANALYST ReBAC - Regular analysts need group coverage
+# REGULAR ANALYSTS: Can only modify recommendations for stocks their groups cover
+# Example: Al Gorithm (tech group) can edit NVDA but NOT JPM recommendations
 allow(user: User, "modify", recommendation: Recommendation) if 
-    has_analyst_access(user) and
-    user.analyst_type = "regular" and
-    analyst_can_modify_stock(user, recommendation.stock_symbol);
+    has_analyst_access(user) and                              # Must be analyst or admin  
+    user.analyst_type = "regular" and                         # Must be "regular" type
+    analyst_can_modify_stock(user, recommendation.stock_symbol); # Check group coverage
 
-# ANALYST ReBAC - Super analysts can modify any stock
+# STOCK DATA MODIFICATION: Similar rules but for stock prices/data (not recommendations)
+# Super analysts can modify any stock data
 allow(user: User, "modify", _stock: Stock) if 
     has_analyst_access(user) and
     user.analyst_type = "super";
 
-# ANALYST ReBAC - Regular analysts can modify stocks their groups cover
+# Regular analysts can modify stock data only for their group's stocks
 allow(user: User, "modify", stock: Stock) if 
     has_analyst_access(user) and
     user.analyst_type = "regular" and
     analyst_can_modify_stock(user, stock.symbol);
 
-# Helper rule: Check if analyst's group covers the stock
+# ========================================================================================
+# 🔍 REBAC HELPER FUNCTION
+# ========================================================================================
+# Checks if a user's group covers a stock.
+
+# "Can this analyst modify this stock?"
 analyst_can_modify_stock(user: User, stock_symbol: String) if
-    group_id in user.groups and
-    group_covers_stock(group_id, stock_symbol);
+    group_id in user.groups and              # For each group the user belongs to...
+    group_covers_stock(group_id, stock_symbol); # ...check if that group covers the stock
 
-# Fact: Define which groups cover which stocks
-group_covers_stock("tech", "NVDA");
-group_covers_stock("tech", "AAPL"); 
-group_covers_stock("tech", "GOOGL");
-group_covers_stock("tech", "META");
-group_covers_stock("tech", "MSFT");
-group_covers_stock("tech", "AMZN");
-group_covers_stock("finance", "BRK.A");
-group_covers_stock("finance", "JPM");
+# Example walkthrough for Al Gorithm editing NVDA:
+# 1. Al has groups: ["tech"]
+# 2. Check if "tech" is in user.groups → YES
+# 3. Check if group_covers_stock("tech", "NVDA") → YES (see facts below)
+# 4. Result: ALLOWED ✅
 
-# ADMIN: Can modify stocks and recommendations (inherits all view permissions)
+# Example walkthrough for Al Gorithm editing JPM:
+# 1. Al has groups: ["tech"] 
+# 2. Check if "tech" is in user.groups → YES
+# 3. Check if group_covers_stock("tech", "JPM") → NO (JPM is finance)
+# 4. Result: DENIED ❌
+
+# ========================================================================================
+# 📊 FACTS: GROUP-TO-STOCK MAPPINGS
+# ========================================================================================
+# These are static "facts" that define which groups cover which stocks
+# In a real app, this data might come from a database
+
+# Tech group covers technology stocks
+group_covers_stock("tech", "NVDA");    # NVIDIA
+group_covers_stock("tech", "AAPL");    # Apple
+group_covers_stock("tech", "GOOGL");   # Google
+group_covers_stock("tech", "META");    # Meta/Facebook
+group_covers_stock("tech", "MSFT");    # Microsoft
+group_covers_stock("tech", "AMZN");    # Amazon
+
+# Finance group covers financial stocks
+group_covers_stock("finance", "BRK.A"); # Berkshire Hathaway
+group_covers_stock("finance", "JPM");   # JPMorgan Chase
+
+# 💡 To add a new stock: just add a new group_covers_stock() fact!
+# 💡 To add a new group: create new facts and update user.groups in your app
+
+# ========================================================================================
+# 👑 ADMIN OVERRIDES
+# ========================================================================================
+# Admins can do everything - they bypass all ReBAC restrictions
+
 allow(user: User, "modify", _stock: Stock) if 
-    has_admin_access(user);
+    has_admin_access(user);              # Admins can modify any stock data
+
 allow(user: User, "modify", _recommendation: Recommendation) if 
-    has_admin_access(user);
+    has_admin_access(user);              # Admins can modify any recommendation
