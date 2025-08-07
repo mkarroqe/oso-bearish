@@ -1,6 +1,4 @@
-# Proper ReBAC Policy using Oso's resource block syntax
-# 
-# ⚠️ CRITICAL: These resource blocks define the authorization model structure
+# NOTE: These resource blocks define the authorization model structure
 # The TypeScript interfaces in types/polar-types.ts provide the actual data fields
 
 # Define our actor - users who can perform actions
