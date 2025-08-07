@@ -28,7 +28,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(permissions);
   } catch (error) {
     console.error('Error fetching permissions:', error);
-    // Return more detailed error in development
     const errorMessage = process.env.NODE_ENV === 'development' 
       ? `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
       : 'Internal server error';
