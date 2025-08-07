@@ -63,6 +63,7 @@ export function StockTable({
             <tr className={sectionTitle ? "bg-slate-50/40 border-b border-slate-200/60" : "bg-slate-50/80 border-b border-slate-200/60"}>
               <th className="px-8 py-4 text-left font-medium text-slate-600 tracking-wide">Symbol</th>
               <th className="px-8 py-4 text-left font-medium text-slate-600 tracking-wide">Company</th>
+              <th className="px-8 py-4 text-left font-medium text-slate-600 tracking-wide">Tags</th>
               <th className="px-8 py-4 text-right font-medium text-slate-600 tracking-wide">Price</th>
               <th className="px-8 py-4 text-right font-medium text-slate-600 tracking-wide">Change</th>
               <th className="px-8 py-4 text-right font-medium text-slate-600 tracking-wide">Change %</th>
@@ -91,6 +92,22 @@ export function StockTable({
                     className="font-light text-left"
                     onUpdate={onStockUpdate || (() => {})}
                   />
+                </td>
+                <td className="px-8 py-4">
+                  <div className="flex gap-2">
+                    <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full font-medium">
+                      {stock.industry}
+                    </span>
+                    {stock.isBasic ? (
+                      <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full font-medium">
+                        Basic
+                      </span>
+                    ) : (
+                      <span className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded-full font-medium">
+                        Premium
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="px-8 py-4 text-right font-mono text-slate-800 font-medium">
                   <EditableField

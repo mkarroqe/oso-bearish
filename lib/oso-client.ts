@@ -33,6 +33,7 @@ class OsoStock {
   marketCap: number;
   recommendation: string;
   isBasic: boolean;
+  industry: string;
 
   constructor(stock: Stock) {
     this.symbol = stock.symbol;
@@ -44,6 +45,7 @@ class OsoStock {
     this.marketCap = stock.marketCap;
     this.recommendation = stock.recommendation;
     this.isBasic = stock.isBasic;
+    this.industry = stock.industry;
   }
 }
 
@@ -181,7 +183,8 @@ export async function canModifyStock(user: User): Promise<boolean> {
     volume: 0,
     marketCap: 0,
     recommendation: 'hold',
-    isBasic: false
+    isBasic: false,
+    industry: ''
   });
   return oso.isAllowed(osoUser, 'modify' as Action, stock);
 }

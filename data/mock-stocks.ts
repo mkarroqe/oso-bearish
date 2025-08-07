@@ -11,6 +11,7 @@ export let mockStocks: Stock[] = [
     marketCap: 412000000000,
     recommendation: 'buy',
     isBasic: true,
+    industry: 'ETF',
   },
   {
     symbol: 'VTI',
@@ -22,6 +23,7 @@ export let mockStocks: Stock[] = [
     marketCap: 275000000000,
     recommendation: 'buy',
     isBasic: true,
+    industry: 'ETF',
   },
   {
     symbol: 'JNJ',
@@ -33,6 +35,7 @@ export let mockStocks: Stock[] = [
     marketCap: 430000000000,
     recommendation: 'hold',
     isBasic: false,
+    industry: 'Healthcare',
   },
   {
     symbol: 'JPM',
@@ -44,6 +47,7 @@ export let mockStocks: Stock[] = [
     marketCap: 450000000000,
     recommendation: 'buy',
     isBasic: false,
+    industry: 'Financial Services',
   },
   {
     symbol: 'UNH',
@@ -55,6 +59,7 @@ export let mockStocks: Stock[] = [
     marketCap: 490000000000,
     recommendation: 'buy',
     isBasic: false,
+    industry: 'Healthcare',
   },
   {
     symbol: 'PFE',
@@ -66,6 +71,7 @@ export let mockStocks: Stock[] = [
     marketCap: 165000000000,
     recommendation: 'hold',
     isBasic: false,
+    industry: 'Healthcare',
   },
   {
     symbol: 'XOM',
@@ -77,6 +83,7 @@ export let mockStocks: Stock[] = [
     marketCap: 485000000000,
     recommendation: 'buy',
     isBasic: false,
+    industry: 'Energy',
   },
   {
     symbol: 'NVDA',
@@ -88,6 +95,7 @@ export let mockStocks: Stock[] = [
     marketCap: 2150000000000,
     recommendation: 'buy',
     isBasic: true,
+    industry: 'Technology',
   },
   {
     symbol: 'GOOGL',
@@ -99,6 +107,7 @@ export let mockStocks: Stock[] = [
     marketCap: 1750000000000,
     recommendation: 'buy',
     isBasic: true,
+    industry: 'Technology',
   },
   {
     symbol: 'META',
@@ -110,6 +119,7 @@ export let mockStocks: Stock[] = [
     marketCap: 1080000000000,
     recommendation: 'buy',
     isBasic: true,
+    industry: 'Technology',
   },
   {
     symbol: 'AAPL',
@@ -121,6 +131,7 @@ export let mockStocks: Stock[] = [
     marketCap: 2840000000000,
     recommendation: 'hold',
     isBasic: false,
+    industry: 'Technology',
   },
   {
     symbol: 'MSFT',
@@ -132,6 +143,7 @@ export let mockStocks: Stock[] = [
     marketCap: 2810000000000,
     recommendation: 'hold',
     isBasic: false,
+    industry: 'Technology',
   },
   {
     symbol: 'BRK.A',
@@ -143,6 +155,7 @@ export let mockStocks: Stock[] = [
     marketCap: 785000000000,
     recommendation: 'hold',
     isBasic: false,
+    industry: 'Financial Services',
   },
   {
     symbol: 'TSLA',
@@ -154,6 +167,7 @@ export let mockStocks: Stock[] = [
     marketCap: 790000000000,
     recommendation: 'sell',
     isBasic: false,
+    industry: 'Automotive',
   },
   {
     symbol: 'AMZN',
@@ -165,5 +179,6 @@ export let mockStocks: Stock[] = [
     marketCap: 1580000000000,
     recommendation: 'sell',
     isBasic: false,
+    industry: 'Technology',
   }
 ];

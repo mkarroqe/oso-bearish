@@ -77,6 +77,8 @@ group_covers_stock("tech", "TSLA");
 group_covers_stock("tech", "AMZN");
 group_covers_stock("finance", "BRK.A");
 
-# ADMIN: Can modify stocks (inherits all view permissions)
+# ADMIN: Can modify stocks and recommendations (inherits all view permissions)
 allow(user: User, "modify", _stock: Stock) if 
+    has_admin_access(user);
+allow(user: User, "modify", _recommendation: Recommendation) if 
     has_admin_access(user);

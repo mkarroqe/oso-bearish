@@ -28,6 +28,7 @@ export interface Stock {
   marketCap: number;
   recommendation: "buy" | "hold" | "sell";
   isBasic: boolean;
+  industry: string;
 }
 
 export interface Recommendation {

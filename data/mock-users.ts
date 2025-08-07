@@ -19,20 +19,20 @@ export const mockUsers: User[] = [
   },
   {
     id: '3',
+    firstName: 'Addie',
+    lastName: 'Min',
+    email: 'whatstheaddie@osohq.com',
+    role: 'admin',
+    groups: []
+  },
+  {
+    id: '4',
     firstName: 'Ana',
     lastName: 'Lyst',
     email: 'analystana@osohq.com', 
     role: 'analyst',
     analyst_type: 'super',
     groups: ['tech', 'finance'] 
-  },
-  {
-    id: '4',
-    firstName: 'Addie',
-    lastName: 'Min',
-    email: 'whatstheaddie@osohq.com',
-    role: 'admin',
-    groups: []
   },
   {
     id: '5',
