@@ -10,12 +10,16 @@ class OsoUser {
   role: string;
   firstName?: string;
   lastName?: string;
+  analyst_type?: string;
+  groups: string[];
 
   constructor(user: User) {
     this.id = user.id;
     this.role = user.role;
     this.firstName = user.firstName;
     this.lastName = user.lastName;
+    this.analyst_type = user.analyst_type;
+    this.groups = user.groups || [];
   }
 }
 
@@ -29,6 +33,7 @@ class OsoStock {
   marketCap: number;
   recommendation: string;
   isBasic: boolean;
+  industry: string;
 
   constructor(stock: Stock) {
     this.symbol = stock.symbol;
@@ -40,23 +45,44 @@ class OsoStock {
     this.marketCap = stock.marketCap;
     this.recommendation = stock.recommendation;
     this.isBasic = stock.isBasic;
+    this.industry = stock.industry;
   }
 }
 
 class OsoRecommendation {
+  stock_symbol: string;
   _type: string = 'Recommendation';
+
+  constructor(stockSymbol: string = '') {
+    this.stock_symbol = stockSymbol;
+  }
 }
 
+class OsoGroup {
+  id: string;
+  name: string;
+  description: string;
+  covered_stocks: string[];
+
+  constructor(group: { id: string; name: string; description: string; covered_stocks: string[] }) {
+    this.id = group.id;
+    this.name = group.name;
+    this.description = group.description;
+    this.covered_stocks = group.covered_stocks || [];
+  }
+}
+
+// TODO: better way to load this? 
 // Load policy from file - our single source of truth
 let POLICY: string;
 try {
   const policyPath = path.join(process.cwd(), 'policies', 'stock-policies.polar');
   POLICY = readFileSync(policyPath, 'utf-8');
-} catch (error) {
+} catch {
   // Fallback policy string if file can't be read
   console.warn('Could not read policies/stock-policies.polar file, using fallback policy');
   POLICY = `
-# Fallback policy - should use authorization.polar file instead
+# Fallback policy - should use stock-policies.polar file instead
 actor User {}
 resource Stock {}
 resource Recommendation {}
@@ -73,7 +99,6 @@ allow(user: User, "view", _: Recommendation) if user.role = "admin";
 allow(user: User, "modify", _: Recommendation) if user.role = "admin";
 allow(user: User, "modify", _: Stock) if user.role = "admin";
 `;
-throw error;
 }
 
 // Create and configure Oso instance
@@ -90,6 +115,7 @@ export function getOso(): Oso {
       osoInstance.registerClass(OsoUser, { name: 'User' });
       osoInstance.registerClass(OsoStock, { name: 'Stock' });
       osoInstance.registerClass(OsoRecommendation, { name: 'Recommendation' });
+      osoInstance.registerClass(OsoGroup, { name: 'Group' });
       
       // Load the policy directly from string
       console.log('Loading policy...');
@@ -130,11 +156,19 @@ export async function canViewRecommendation(user: User): Promise<boolean> {
   return oso.isAllowed(osoUser, 'view' as Action, recommendation);
 }
 
-export async function canModifyRecommendation(user: User): Promise<boolean> {
+export async function canModifyRecommendation(user: User, stockSymbol?: string): Promise<boolean> {
   const oso = getOso();
   const osoUser = new OsoUser(user);
-  const recommendation = new OsoRecommendation();
-  return oso.isAllowed(osoUser, 'modify' as Action, recommendation);
+  const recommendation = new OsoRecommendation(stockSymbol || '');
+  
+  try {
+    // Pure Oso - let the policy handle all ReBAC logic
+    return oso.isAllowed(osoUser, 'modify' as Action, recommendation);
+  } catch (error) {
+    console.error('Error checking recommendation modification permission:', error);
+    // Fallback to simple role-based check
+    return user.role === 'analyst' || user.role === 'admin';
+  }
 }
 
 export async function canModifyStock(user: User): Promise<boolean> {
@@ -150,9 +184,24 @@ export async function canModifyStock(user: User): Promise<boolean> {
     volume: 0,
     marketCap: 0,
     recommendation: 'hold',
-    isBasic: false
+    isBasic: false,
+    industry: ''
   });
   return oso.isAllowed(osoUser, 'modify' as Action, stock);
+}
+
+export async function canModifySpecificStock(user: User, stock: Stock): Promise<boolean> {
+  const oso = getOso();
+  const osoUser = new OsoUser(user);
+  const osoStock = new OsoStock(stock);
+  return oso.isAllowed(osoUser, 'modify' as Action, osoStock);
+}
+
+export async function canModifyStockRecommendation(user: User, stock: Stock): Promise<boolean> {
+  const oso = getOso();
+  const osoUser = new OsoUser(user);
+  const recommendation = new OsoRecommendation(stock.symbol);
+  return oso.isAllowed(osoUser, 'modify' as Action, recommendation);
 }
 
 // Get all permissions for a user

@@ -2,6 +2,18 @@ import type { Stock } from '@/types/stock';
 
 export let mockStocks: Stock[] = [
   {
+    symbol: 'JPM',
+    name: 'JPMorgan Chase & Co.',
+    price: 154.87,
+    change: 1.23,
+    changePercent: 0.80,
+    volume: 12456700,
+    marketCap: 450000000000,
+    recommendation: 'buy',
+    isBasic: false,
+    industry: 'finance',
+  },
+  {
     symbol: 'NVDA',
     name: 'NVIDIA Corporation',
     price: 875.30,
@@ -11,6 +23,7 @@ export let mockStocks: Stock[] = [
     marketCap: 2150000000000,
     recommendation: 'buy',
     isBasic: true,
+    industry: 'tech',
   },
   {
     symbol: 'GOOGL',
@@ -22,6 +35,7 @@ export let mockStocks: Stock[] = [
     marketCap: 1750000000000,
     recommendation: 'buy',
     isBasic: true,
+    industry: 'tech',
   },
   {
     symbol: 'META',
@@ -33,6 +47,7 @@ export let mockStocks: Stock[] = [
     marketCap: 1080000000000,
     recommendation: 'buy',
     isBasic: true,
+    industry: 'tech',
   },
   {
     symbol: 'AAPL',
@@ -44,6 +59,7 @@ export let mockStocks: Stock[] = [
     marketCap: 2840000000000,
     recommendation: 'hold',
     isBasic: false,
+    industry: 'tech',
   },
   {
     symbol: 'MSFT',
@@ -55,6 +71,7 @@ export let mockStocks: Stock[] = [
     marketCap: 2810000000000,
     recommendation: 'hold',
     isBasic: false,
+    industry: 'tech',
   },
   {
     symbol: 'BRK.A',
@@ -66,17 +83,7 @@ export let mockStocks: Stock[] = [
     marketCap: 785000000000,
     recommendation: 'hold',
     isBasic: false,
-  },
-  {
-    symbol: 'TSLA',
-    name: 'Tesla, Inc.',
-    price: 248.42,
-    change: -5.67,
-    changePercent: -2.23,
-    volume: 76543200,
-    marketCap: 790000000000,
-    recommendation: 'sell',
-    isBasic: false,
+    industry: 'finance',
   },
   {
     symbol: 'AMZN',
@@ -88,5 +95,6 @@ export let mockStocks: Stock[] = [
     marketCap: 1580000000000,
     recommendation: 'sell',
     isBasic: false,
+    industry: 'tech',
   }
 ];

@@ -97,7 +97,7 @@ export default function Home() {
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-purple-50 p-12">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <div className="mb-12 text-center">
             <h1 className="text-4xl font-light text-slate-700 mb-2 tracking-wide">🐻</h1>
             <h1 className="text-4xl font-light text-slate-700 mb-2 tracking-wide">o(h )so bearish</h1>
@@ -111,7 +111,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-purple-50 p-12">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-full mx-auto px-4">
         <UserSwitcher />
         
         <div className="mb-8 text-center py-8 bg-blue-100 rounded-2xl shadow-sm border border-blue-200/50">
@@ -136,7 +136,7 @@ export default function Home() {
                 <StockTable
                   key={recommendation}
                   stocks={categoryStocks}
-                  canEdit={permissions.canModifyRecs}
+                  user={currentUser}
                   canEditStocks={permissions.canModifyStocks}
                   onRecommendationUpdate={handleRecommendationUpdate}
                   onStockUpdate={handleStockUpdate}
@@ -153,7 +153,7 @@ export default function Home() {
           // Basic users: Simple table with upgrade message
           <StockTable
             stocks={stocks}
-            canEdit={false}
+            user={currentUser}
             canEditStocks={false}
             showUpgrade={true}
             onRecommendationUpdate={handleRecommendationUpdate}
