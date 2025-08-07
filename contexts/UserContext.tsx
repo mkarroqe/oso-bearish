@@ -1,8 +1,9 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import type { User, UserPermissions } from '@/types/user';
-import { mockUsers, getUserPermissions } from '@/data/mock-users';
+import { mockUsers } from '@/data/mock-users';
+import { getUserPermissionsFromServer } from '@/lib/client-auth';
 
 interface UserContextType {
   currentUser: User | null;
@@ -16,13 +17,27 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-
-  const permissions = currentUser ? getUserPermissions(currentUser.role) : {
+  const [permissions, setPermissions] = useState<UserPermissions>({
     canViewAllStocks: false,
     canModifyStocks: false,
     canViewRecs: false,
     canModifyRecs: false
-  };
+  });
+
+  useEffect(() => {
+    if (currentUser) {
+      // Fetch permissions from server using Oso
+      getUserPermissionsFromServer(currentUser.id).then(setPermissions);
+    } else {
+      // Reset to default permissions when logged out
+      setPermissions({
+        canViewAllStocks: false,
+        canModifyStocks: false,
+        canViewRecs: false,
+        canModifyRecs: false
+      });
+    }
+  }, [currentUser]);
 
   const login = (userId: string) => {
     const user = mockUsers.find(u => u.id === userId);

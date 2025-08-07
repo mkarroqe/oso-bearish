@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { Recommendation, Stock } from '@/types/stock';
+import { useUser } from '@/contexts/UserContext';
 
 interface EditableRecommendationProps {
   stock: Stock;
@@ -11,6 +12,7 @@ interface EditableRecommendationProps {
 
 export function EditableRecommendation({ stock, canEdit, onUpdate }: EditableRecommendationProps) {
   const [isUpdating, setIsUpdating] = useState(false);
+  const { currentUser } = useUser();
 
   const getRecommendationColor = (rec: Recommendation) => {
     switch (rec) {
@@ -21,13 +23,13 @@ export function EditableRecommendation({ stock, canEdit, onUpdate }: EditableRec
   };
 
   const handleRecommendationChange = async (newRecommendation: Recommendation) => {
-    if (newRecommendation === stock.recommendation) {
+    if (newRecommendation === stock.recommendation || !currentUser) {
       return;
     }
 
     setIsUpdating(true);
     try {
-      const response = await fetch(`/api/stocks?symbol=${stock.symbol}`, {
+      const response = await fetch(`/api/stocks?symbol=${stock.symbol}&userId=${currentUser.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -38,7 +40,9 @@ export function EditableRecommendation({ stock, canEdit, onUpdate }: EditableRec
       if (response.ok) {
         onUpdate(stock.symbol, newRecommendation);
       } else {
-        console.error('Failed to update recommendation');
+        const error = await response.json();
+        console.error('Failed to update recommendation:', error);
+        alert(error.error || 'Failed to update recommendation');
       }
     } catch (error) {
       console.error('Error updating recommendation:', error);

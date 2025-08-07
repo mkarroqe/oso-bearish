@@ -1,16 +1,2 @@
-export type UserRole = 'basic' | 'premium' | 'analyst' | 'admin';
-
-export interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: UserRole;
-}
-
-export interface UserPermissions {
-  canViewAllStocks: boolean;
-  canModifyStocks: boolean;
-  canViewRecs: boolean;
-  canModifyRecs: boolean;
-}
+// Re-export types from our single source of truth
+export type { User, UserRole, UserPermissions } from './polar-types';

@@ -1,11 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { mockStocks } from '@/data/mock-stocks';
+import { mockUsers } from '@/data/mock-users';
 import type { Recommendation } from '@/types/stock';
+import { canViewStock, canModifyStock, canModifyRecommendation } from '@/lib/oso-client';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const symbol = searchParams.get('symbol');
+    const userId = searchParams.get('userId');
+
+    // Require authentication for all requests
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Authentication required - userId parameter is required' },
+        { status: 401 }
+      );
+    }
+
+    // Get user for authorization
+    const user = mockUsers.find(u => u.id === userId);
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 401 }
+      );
+    }
 
     if (symbol) {
       const stock = mockStocks.find(s => s.symbol.toLowerCase() === symbol.toLowerCase());
@@ -17,10 +37,27 @@ export async function GET(request: NextRequest) {
         );
       }
 
+      // Check if user can view this stock
+      const canView = await canViewStock(user, stock);
+      if (!canView) {
+        return NextResponse.json(
+          { error: 'Access denied' },
+          { status: 403 }
+        );
+      }
+
       return NextResponse.json(stock);
     }
 
-    return NextResponse.json(mockStocks);
+    // Filter stocks based on user permissions
+    const authorizedStocks = await Promise.all(
+      mockStocks.map(async (stock) => {
+        const canView = await canViewStock(user, stock);
+        return canView ? stock : null;
+      })
+    );
+
+    return NextResponse.json(authorizedStocks.filter(Boolean));
   } catch {
     return NextResponse.json(
       { error: 'Internal server error' },
@@ -33,11 +70,29 @@ export async function PATCH(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const symbol = searchParams.get('symbol');
+    const userId = searchParams.get('userId');
     
     if (!symbol) {
       return NextResponse.json(
         { error: 'Stock symbol is required' },
         { status: 400 }
+      );
+    }
+
+    // Require userId for PATCH operations
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    // Get user for authorization
+    const user = mockUsers.find(u => u.id === userId);
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 401 }
       );
     }
 
@@ -57,6 +112,15 @@ export async function PATCH(request: NextRequest) {
 
     // Update recommendation if provided
     if (body.recommendation) {
+      // Check if user can modify recommendations
+      const canModifyRec = await canModifyRecommendation(user);
+      if (!canModifyRec) {
+        return NextResponse.json(
+          { error: 'You do not have permission to modify recommendations' },
+          { status: 403 }
+        );
+      }
+
       if (!['buy', 'hold', 'sell'].includes(body.recommendation)) {
         return NextResponse.json(
           { error: 'Valid recommendation (buy, hold, sell) is required' },
@@ -65,6 +129,23 @@ export async function PATCH(request: NextRequest) {
       }
       stock.recommendation = body.recommendation as Recommendation;
       updated = true;
+    }
+
+    // Check if user can modify stock data for any other field updates
+    const isModifyingStockData = body.price !== undefined || 
+                                 body.change !== undefined || 
+                                 body.volume !== undefined || 
+                                 body.marketCap !== undefined || 
+                                 body.name !== undefined;
+
+    if (isModifyingStockData) {
+      const canModifyStockData = await canModifyStock(user);
+      if (!canModifyStockData) {
+        return NextResponse.json(
+          { error: 'You do not have permission to modify stock data' },
+          { status: 403 }
+        );
+      }
     }
 
     // Update price if provided

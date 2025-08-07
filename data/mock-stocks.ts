@@ -9,7 +9,8 @@ export let mockStocks: Stock[] = [
     changePercent: 1.44,
     volume: 42156800,
     marketCap: 2150000000000,
-    recommendation: 'buy'
+    recommendation: 'buy',
+    isBasic: true,
   },
   {
     symbol: 'GOOGL',
@@ -19,7 +20,8 @@ export let mockStocks: Stock[] = [
     changePercent: 1.80,
     volume: 25641200,
     marketCap: 1750000000000,
-    recommendation: 'buy'
+    recommendation: 'buy',
+    isBasic: true,
   },
   {
     symbol: 'META',
@@ -29,7 +31,8 @@ export let mockStocks: Stock[] = [
     changePercent: 1.94,
     volume: 28764300,
     marketCap: 1080000000000,
-    recommendation: 'buy'
+    recommendation: 'buy',
+    isBasic: true,
   },
   {
     symbol: 'AAPL',
@@ -39,7 +42,8 @@ export let mockStocks: Stock[] = [
     changePercent: -0.67,
     volume: 48532100,
     marketCap: 2840000000000,
-    recommendation: 'hold'
+    recommendation: 'hold',
+    isBasic: false,
   },
   {
     symbol: 'MSFT',
@@ -49,7 +53,8 @@ export let mockStocks: Stock[] = [
     changePercent: 0.24,
     volume: 19823400,
     marketCap: 2810000000000,
-    recommendation: 'hold'
+    recommendation: 'hold',
+    isBasic: false,
   },
   {
     symbol: 'BRK.A',
@@ -59,7 +64,8 @@ export let mockStocks: Stock[] = [
     changePercent: -0.46,
     volume: 1250,
     marketCap: 785000000000,
-    recommendation: 'hold'
+    recommendation: 'hold',
+    isBasic: false,
   },
   {
     symbol: 'TSLA',
@@ -69,7 +75,8 @@ export let mockStocks: Stock[] = [
     changePercent: -2.23,
     volume: 76543200,
     marketCap: 790000000000,
-    recommendation: 'sell'
+    recommendation: 'sell',
+    isBasic: false,
   },
   {
     symbol: 'AMZN',
@@ -79,6 +86,7 @@ export let mockStocks: Stock[] = [
     changePercent: -0.51,
     volume: 31245600,
     marketCap: 1580000000000,
-    recommendation: 'sell'
+    recommendation: 'sell',
+    isBasic: false,
   }
 ];
