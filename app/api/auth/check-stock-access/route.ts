@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { mockUsers } from '@/data/mock-users';
 import { mockStocks } from '@/data/mock-stocks';
-import { canViewStock, canModifyRecommendation } from '@/lib/oso-client';
+import { canViewStock, canModifySpecificStock } from '@/lib/oso-client';
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     let result;
     if (action === 'modify') {
       // Pure Oso ReBAC - let the policy handle everything
-      const allowed = await canModifyRecommendation(user, symbol);
+      const allowed = await canModifySpecificStock(user, stock);
 
       result = {
         user: {
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
           symbol: stock.symbol,
           name: stock.name
         },
-        action: 'modify_recommendation',
+        action: 'modify_stock',
         allowed: allowed,
         explanation: getExplanation(user, symbol, allowed)
       };

@@ -1,12 +1,14 @@
 'use client';
 
 import type { Stock, Recommendation } from '@/types/stock';
+import type { User } from '@/types';
 import { EditableRecommendation } from './EditableRecommendation';
 import { EditableField } from './EditableField';
+import { useStockRecommendationPermissions } from '@/hooks/useStockRecommendationPermissions';
 
 interface StockTableProps {
   stocks: Stock[];
-  canEdit: boolean;
+  user: User | null;
   canEditStocks?: boolean;
   showUpgrade?: boolean;
   onRecommendationUpdate: (symbol: string, newRecommendation: Recommendation) => void;
@@ -19,14 +21,15 @@ interface StockTableProps {
 }
 
 export function StockTable({ 
-  stocks, 
-  canEdit, 
+  stocks,
+  user,
   canEditStocks = false,
   showUpgrade = false, 
   onRecommendationUpdate,
   onStockUpdate,
   sectionTitle 
 }: StockTableProps) {
+  const { permissions: recommendationPermissions } = useStockRecommendationPermissions(user, stocks);
   const formatCurrency = (num: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(num);
   };
@@ -180,7 +183,7 @@ export function StockTable({
                   ) : (
                     <EditableRecommendation 
                       stock={stock}
-                      canEdit={canEdit}
+                      canEdit={recommendationPermissions[stock.symbol] || false}
                       onUpdate={onRecommendationUpdate}
                     />
                   )}

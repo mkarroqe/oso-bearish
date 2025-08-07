@@ -189,6 +189,20 @@ export async function canModifyStock(user: User): Promise<boolean> {
   return oso.isAllowed(osoUser, 'modify' as Action, stock);
 }
 
+export async function canModifySpecificStock(user: User, stock: Stock): Promise<boolean> {
+  const oso = getOso();
+  const osoUser = new OsoUser(user);
+  const osoStock = new OsoStock(stock);
+  return oso.isAllowed(osoUser, 'modify' as Action, osoStock);
+}
+
+export async function canModifyStockRecommendation(user: User, stock: Stock): Promise<boolean> {
+  const oso = getOso();
+  const osoUser = new OsoUser(user);
+  const recommendation = new OsoRecommendation(stock.symbol);
+  return oso.isAllowed(osoUser, 'modify' as Action, recommendation);
+}
+
 // Get all permissions for a user
 export async function getUserPermissions(user: User) {
   try {

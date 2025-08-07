@@ -136,7 +136,7 @@ export default function Home() {
                 <StockTable
                   key={recommendation}
                   stocks={categoryStocks}
-                  canEdit={permissions.canModifyRecs}
+                  user={currentUser}
                   canEditStocks={permissions.canModifyStocks}
                   onRecommendationUpdate={handleRecommendationUpdate}
                   onStockUpdate={handleStockUpdate}
@@ -153,7 +153,7 @@ export default function Home() {
           // Basic users: Simple table with upgrade message
           <StockTable
             stocks={stocks}
-            canEdit={false}
+            user={currentUser}
             canEditStocks={false}
             showUpgrade={true}
             onRecommendationUpdate={handleRecommendationUpdate}

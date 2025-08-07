@@ -62,6 +62,17 @@ allow(user: User, "modify", recommendation: Recommendation) if
     user.analyst_type = "regular" and
     analyst_can_modify_stock(user, recommendation.stock_symbol);
 
+# ANALYST ReBAC - Super analysts can modify any stock
+allow(user: User, "modify", _stock: Stock) if 
+    has_analyst_access(user) and
+    user.analyst_type = "super";
+
+# ANALYST ReBAC - Regular analysts can modify stocks their groups cover
+allow(user: User, "modify", stock: Stock) if 
+    has_analyst_access(user) and
+    user.analyst_type = "regular" and
+    analyst_can_modify_stock(user, stock.symbol);
+
 # Helper rule: Check if analyst's group covers the stock
 analyst_can_modify_stock(user: User, stock_symbol: String) if
     group_id in user.groups and
@@ -73,9 +84,9 @@ group_covers_stock("tech", "AAPL");
 group_covers_stock("tech", "GOOGL");
 group_covers_stock("tech", "META");
 group_covers_stock("tech", "MSFT");
-group_covers_stock("tech", "TSLA");
 group_covers_stock("tech", "AMZN");
 group_covers_stock("finance", "BRK.A");
+group_covers_stock("finance", "JPM");
 
 # ADMIN: Can modify stocks and recommendations (inherits all view permissions)
 allow(user: User, "modify", _stock: Stock) if 
