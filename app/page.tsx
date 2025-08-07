@@ -12,24 +12,24 @@ export default function Home() {
   const { currentUser, permissions } = useUser();
 
   useEffect(() => {
-    fetch('/api/stocks')
+    if (!currentUser) {
+      setStocks([]);
+      setLoading(false);
+      return;
+    }
+
+    fetch(`/api/stocks?userId=${currentUser.id}`)
       .then(res => res.json())
       .then(data => {
-        let filteredStocks = data;
-        
-        // Basic users can only see limited stocks
-        if (!permissions.canViewAllStocks) {
-          filteredStocks = data.slice(0, 3); // Only first 3 stocks
-        }
-        
-        setStocks(filteredStocks);
+        // Server already filtered based on user permissions - no client-side filtering needed
+        setStocks(data);
         setLoading(false);
       })
       .catch(err => {
         console.error('Failed to fetch stocks:', err);
         setLoading(false);
       });
-  }, [permissions]);
+  }, [currentUser, permissions]);
 
   const getArticle = (role: string) => {
     return ['admin', 'analyst'].includes(role) ? 'an' : 'a';

@@ -10,22 +10,12 @@ export async function GET(request: NextRequest) {
     const symbol = searchParams.get('symbol');
     const userId = searchParams.get('userId');
 
-    // For now, if no userId provided, return all stocks (for backwards compatibility)
-    // In production, you'd want to enforce authentication
+    // Require authentication for all requests
     if (!userId) {
-      if (symbol) {
-        const stock = mockStocks.find(s => s.symbol.toLowerCase() === symbol.toLowerCase());
-        
-        if (!stock) {
-          return NextResponse.json(
-            { error: 'Stock not found' },
-            { status: 404 }
-          );
-        }
-
-        return NextResponse.json(stock);
-      }
-      return NextResponse.json(mockStocks);
+      return NextResponse.json(
+        { error: 'Authentication required - userId parameter is required' },
+        { status: 401 }
+      );
     }
 
     // Get user for authorization
