@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🐻 Oso Bearish - Stock Recommendation Platform
 
-## Getting Started
+A demonstration of **Relationship-Based Access Control (ReBAC)** using [Oso](https://www.osohq.com/) authorization in a Next.js/TypeScript application. This B2B SaaS demo showcases how authorization scales from simple roles to complex team-based permissions.
 
-First, run the development server:
+## 🎯 Key Features
+
+- **Role-Based Access Control (RBAC)** for basic authorization
+- **Relationship-Based Access Control (ReBAC)** for team-based permissions
+- **Type-safe authorization** with TypeScript integration
+- **Performance optimized** with bulk permission APIs
+- **Real-time permission updates** without page refresh
+- **Policy-driven authorization** using Oso's Polar language
+
+## 🚀 Quick Start
 
 ```bash
+# Install dependencies
+npm install
+
+# Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Open browser
+open http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 👥 User Roles & Permissions
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Role Hierarchy & Permission Inheritance
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+Basic ──► Premium ──► Analyst ──► Admin
+  │         │           │          │
+  │         │           │          └─ Can modify stock data
+  │         │           └─ Can modify recommendations (based on groups)
+  │         └─ Can view all stocks & recommendations  
+  └─ Can view basic stocks only
+```
 
-## Learn More
+> **Note:** Each role inherits all permissions from the previous level.
 
-To learn more about Next.js, take a look at the following resources:
+### Demo Users & Their Access
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| User | ID | Role | Groups | What They Can Do |
+|------|:--:|------|:------:|------------------|
+| **Betty Baesic** | 1 | Basic | - | • View basic stocks only |
+| **Priya Mium** | 2 | Premium | - | • Basic access<br/> • View premium stocks<br>• View recommendations |
+| **Addie Min** | 3 | Admin | - | • Premium access<br>• Edit all stocks & recommendations |
+| **Ana Lyst** | 4 | Super Analyst | tech, finance | • Premium access<br/>• Edit ALL recommendations |
+| **Al Gorithm** | 5 | Regular Analyst | tech | • Premium access<br/>• Edit `tech` stock recommendations only |
+| **Finn Tek** | 6 | Regular Analyst | finance | • Premium access<br/>• Edit `finance` stock recommendations only |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Group-Based Permissions (ReBAC)
 
-## Deploy on Vercel
+| Group | Stocks Covered | Who Has Edit Access |
+|-------|---------------|----------------|
+| **tech** | NVDA, AAPL, GOOGL, META, MSFT, AMZN | • Al Gorithm<br>• Ana Lyst |
+| **finance** | JPM, BRK.A | • Finn Tek<br>• Ana Lyst |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+> **Note:** `regular` analysts can only modify stocks in their assigned groups, while `super` analysts can modify any stock.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🏗️ Architecture
+### Authorization Flow
+```
+  User Action → React Component → API Route → Oso Policy Engine
+                                       ↓           ↓
+                                Extract User    Evaluate Rules
+                                       ↓           ↓
+                                    Authorization Check
+                                            ↓
+                                        Allow/Deny
+                                            ↓
+                                         Response
+```
+### Key Components
+
+| Component | Purpose | Location |
+|-----------|---------|----------|
+| **Polar Policy** | Defines all authorization rules | `/policies/stock-policies.polar` |
+| **Oso Client** | Server-side authorization checks | `/lib/oso-client.ts` |
+| **Browser Client** | Client-side permission fetching | `/lib/oso-client-browser.ts` |
+| **Bulk Permissions API** | Performance-optimized batch checks | `/api/auth/bulk-stock-permissions` |
+| **Stock Table** | Dynamic UI based on permissions | `/components/StockTable.tsx` |
+
+## 📝 API Endpoints
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/auth/permissions` | GET | Get user's general permissions |
+| `/api/auth/check-stock-access` | GET | Check single stock permission |
+| `/api/auth/bulk-stock-permissions` | GET | Check multiple stock permissions |
+| `/api/stocks` | GET | Fetch stocks (filtered by permissions) |
+| `/api/stocks` | PATCH | Update stock/recommendation |
+
+> To review the complete API docs, click [here](README-API.md).
+
+## 📚 Learn More
+
+- [Technical Blog Post](./README-post.md) - Deep dive into ReBAC implementation
+- [Oso Documentation](https://www.osohq.com/docs) - Official Oso docs
+- [Polar Language Guide](https://www.osohq.com/docs/guides/polar-syntax) - Policy language reference
